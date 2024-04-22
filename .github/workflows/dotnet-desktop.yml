@@ -1,0 +1,57 @@
+name: Build SnowbreakToolbox
+
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    name: Build and Package
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+      with:
+        path: 'SnowbreakToolbox'
+
+    - name: Install .NET 7.0 Runtime
+      run: choco install dotnet-runtime-7.0
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build the application
+      run: dotnet build --configuration Release
+
+    - name: Publish the application
+      run: dotnet publish --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: SnowbreakToolbox
+        path: SnowbreakToolbox/publish/
+
+    - name: Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: SnowbreakToolbox/publish/SnowbreakGachaExport.exe
+        asset_name: SnowbreakGachaExport.exe
+        asset_content_type: application/octet-stream
+        
