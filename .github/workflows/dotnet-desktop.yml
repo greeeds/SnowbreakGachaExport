@@ -2,7 +2,6 @@ name: Build SnowbreakToolbox
 permissions:
   contents: write
 
-
 on:
   push:
     tags:
@@ -19,7 +18,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '8.0.x'  # 修改为你项目所需的 .NET Core 版本
+        dotnet-version: '8.0.x'
 
     - name: Build with dotnet
       run: dotnet build SnowbreakToolbox/SnowbreakToolbox.csproj --configuration Release --output ./out
@@ -30,12 +29,23 @@ jobs:
     - name: Zip the publish directory
       run: Compress-Archive -Path ./publish/* -DestinationPath ./SnowbreakToolbox.zip
 
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
     - name: Upload release asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ github.event.release.upload_url }}
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./SnowbreakToolbox.zip
         asset_name: SnowbreakToolbox.zip
         asset_content_type: application/zip
