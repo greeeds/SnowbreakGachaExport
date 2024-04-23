@@ -19,7 +19,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '3.1.x' # 修改为你项目所需的 .NET Core 版本
+        dotnet-version: '8.0.x'  # 修改为你项目所需的 .NET Core 版本
 
     - name: Build with dotnet
       run: dotnet build SnowbreakToolbox/SnowbreakToolbox.csproj --configuration Release --output ./out
