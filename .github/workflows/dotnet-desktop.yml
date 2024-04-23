@@ -7,57 +7,35 @@ on:
   push:
     tags:
       - '*'
+
 jobs:
-  build:
-    name: Build and Package
+  build-and-upload:
     runs-on: windows-latest
 
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1 # 设置.NET Core环境
-
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build project
-      run: dotnet build --configuration Release
-      
-    - name: Publish project
-      run: |
-        dotnet publish -c Release -r win-x64 --self-contained false SnowbreakToolbox/SnowbreakToolbox.csproj
-        # 这里假设你的项目文件在SnowbreakToolbox目录下，并且是一个.NET Core项目
-        # -c Release 表示发布配置
-        # -r win-x64 指定发布平台
-        # --self-contained false 表示不包含.NET运行时
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2 # 上传打包的文件作为GitHub Actions的工件
+      uses: actions/setup-dotnet@v2
       with:
-        name: SnowbreakToolbox
-        path: SnowbreakToolbox/bin/Release/net7.0/win-x64/publish/SnowbreakToolbox.zip
+        dotnet-version: '3.1.x' # 修改为你项目所需的 .NET Core 版本
 
-    - name: Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
+    - name: Build with dotnet
+      run: dotnet build SnowbreakToolbox/SnowbreakToolbox.csproj --configuration Release --output ./out
 
-    - name: Upload Release Asset
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Publish with dotnet
+      run: dotnet publish SnowbreakToolbox/SnowbreakToolbox.csproj --configuration Release --output ./publish
+
+    - name: Zip the publish directory
+      run: Compress-Archive -Path ./publish/* -DestinationPath ./SnowbreakToolbox.zip
+
+    - name: Upload release asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: SnowbreakToolbox/publish/SnowbreakGachaExport.exe
-        asset_name: SnowbreakGachaExport.exe
-        asset_content_type: application/octet-stream
-        
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./SnowbreakToolbox.zip
+        asset_name: SnowbreakToolbox.zip
+        asset_content_type: application/zip
