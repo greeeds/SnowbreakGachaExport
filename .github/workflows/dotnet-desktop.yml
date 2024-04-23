@@ -27,7 +27,7 @@ jobs:
       
     - name: Publish project
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained false SnowbreakToolbox/*.csproj
+        dotnet publish -c Release -r win-x64 --self-contained false SnowbreakToolbox/SnowbreakToolbox.csproj
         # 这里假设你的项目文件在SnowbreakToolbox目录下，并且是一个.NET Core项目
         # -c Release 表示发布配置
         # -r win-x64 指定发布平台
