@@ -1,0 +1,39 @@
+name: Build SnowbreakToolbox
+permissions:
+  contents: write
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-upload:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build with dotnet
+      run: dotnet build SnowbreakToolbox/SnowbreakToolbox.csproj --configuration Release --output ./out
+
+    - name: Publish with dotnet
+      run: dotnet publish SnowbreakToolbox/SnowbreakToolbox.csproj --configuration Release --output ./publish
+
+    - name: Zip the publish directory
+      run: Compress-Archive -Path ./publish/* -DestinationPath ./SnowbreakToolbox.zip
+
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./SnowbreakToolbox.zip
+        asset_name: SnowbreakToolbox.zip
+        asset_content_type
