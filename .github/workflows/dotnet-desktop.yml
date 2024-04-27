@@ -36,4 +36,4 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: ./SnowbreakToolbox.zip
         asset_name: SnowbreakToolbox.zip
-        asset_content_type
+        asset_content_type: application/zip
